@@ -4,17 +4,29 @@ const authMiddleware = async (req, res, next) => {
     const authHeader = req.header('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'No token, authorization denied' });
+        return res.status(401).json({ success: false, message: 'No token provided, authorization denied' });
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(' ')[1]; // Ambil token setelah "Bearer"
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
+
+        // Pastikan payload token memiliki ID pengguna
+        if (!decoded.id) {
+            return res.status(401).json({ success: false, message: 'Invalid token payload' });
+        }
+
+        req.user = decoded; // Simpan user dari token ke `req.user`
         next();
     } catch (error) {
-        res.status(401).json({ message: 'Invalid token' });
+        console.error('Token verification failed:', error.message);
+
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ success: false, message: 'Token expired' });
+        }
+
+        res.status(401).json({ success: false, message: 'Invalid token' });
     }
 };
 

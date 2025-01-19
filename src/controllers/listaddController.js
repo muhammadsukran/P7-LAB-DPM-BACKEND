@@ -1,18 +1,20 @@
-const Todo = require('../models/todo');
+const List = require('../models/listadd'); // Ganti dengan model yang sesuai
 
-class TodoController {
-    async createTodo(req, res) {
-        const { title, description } = req.body;
+class ListaddController {
+    // Fungsi untuk menambah item ke dalam daftar
+    async createListItem(req, res) {
+        const { title, description, videoLink } = req.body;
         const userId = req.user.id;
 
         try {
-            const newTodo = new Todo({
+            const newListItem = new List({
                 title,
                 description,
+                videoLink,
                 userId,
             });
-            await newTodo.save();
-            res.status(201).json({ message: 'Todo created successfully', data: newTodo });
+            await newListItem.save();
+            res.status(201).json({ message: 'List item created successfully', data: newListItem });
         } catch (error) {
             if (error.name === 'ValidationError') {
                 const messages = Object.values(error.errors).map((val) => val.message);
@@ -23,11 +25,12 @@ class TodoController {
         }
     }
 
-    async getTodos(req, res) {
+    // Fungsi untuk mengambil semua item dalam daftar
+    async getListItems(req, res) {
         const userId = req.user.id;
         try {
-            const todos = await Todo.find({ userId });
-            res.status(200).json({ data: todos });
+            const listItems = await List.find({ userId });
+            res.status(200).json({ data: listItems });
         } catch (error) {
             if (error.name === 'ValidationError') {
                 const messages = Object.values(error.errors).map((val) => val.message);
@@ -38,14 +41,15 @@ class TodoController {
         }
     }
 
-    async getTodoById(req, res) {
+    // Fungsi untuk mengambil item daftar berdasarkan ID
+    async getListItemById(req, res) {
         const { id } = req.params;
         try {
-            const todo = await Todo.findById(id);
-            if (!todo) {
-                return res.status(404).json({message: 'Todo not found'});
+            const listItem = await List.findById(id);
+            if (!listItem) {
+                return res.status(404).json({ message: 'List item not found' });
             }
-            res.status(200).json({data: todo});
+            res.status(200).json({ data: listItem });
         } catch (error) {
             if (error.name === 'ValidationError') {
                 const messages = Object.values(error.errors).map((val) => val.message);
@@ -56,20 +60,21 @@ class TodoController {
         }
     }
 
-    async updateTodoById(req, res) {
+    // Fungsi untuk memperbarui item daftar berdasarkan ID
+    async updateListItemById(req, res) {
         const { id } = req.params;
-        const { title, description, completed } = req.body;
+        const { title, description, videoLink } = req.body;
 
         try {
-            const updatedTodo = await Todo.findByIdAndUpdate(
+            const updatedListItem = await List.findByIdAndUpdate(
                 id,
-                { title, description, completed },
+                { title, description, videoLink },
                 { new: true }
             );
-            if (!updatedTodo) {
-                return res.status(404).json({ message: 'Todo not found' });
+            if (!updatedListItem) {
+                return res.status(404).json({ message: 'List item not found' });
             }
-            res.status(200).json({ message: 'Todo updated successfully', data: updatedTodo });
+            res.status(200).json({ message: 'List item updated successfully', data: updatedListItem });
         } catch (error) {
             if (error.name === 'ValidationError') {
                 const messages = Object.values(error.errors).map((val) => val.message);
@@ -80,18 +85,19 @@ class TodoController {
         }
     }
 
-    async deleteTodoById(req, res) {
+    // Fungsi untuk menghapus item daftar berdasarkan ID
+    async deleteListItemById(req, res) {
         const { id } = req.params;
         try {
-            const deletedTodo = await Todo.findByIdAndDelete(id);
-            if (!deletedTodo) {
-                return res.status(404).json({ message: 'Todo not found' });
+            const deletedListItem = await List.findByIdAndDelete(id);
+            if (!deletedListItem) {
+                return res.status(404).json({ message: 'List item not found' });
             }
-            res.status(200).json({ message: 'Todo deleted successfully' });
+            res.status(200).json({ message: 'List item deleted successfully' });
         } catch (error) {
             res.status(500).json({ message: 'Server error', error: error.message });
         }
     }
 }
 
-module.exports = new TodoController();
+module.exports = new ListaddController();
